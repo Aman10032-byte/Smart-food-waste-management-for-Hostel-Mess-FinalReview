@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}My Feedback • SFMS{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">STUDENT VOICE • 03</span><h1>My Meal Feedback ⭐</h1><p>Select only the food or meal you want to rate. Rating every item is <b>not mandatory</b>.</p></div><a class="btn light" href="{{url_for('student_home')}}">← Today's Meals</a></section>
+
+<form method="post" action="{{url_for('student_feedback_bulk')}}" data-loading id="feedbackForm">
+  <div class="feedback-selector card">
+    <div class="feedback-selector-head"><div><h2>Choose what you want to rate</h2><p class="muted">One item, a few items, or all items — you decide.</p></div><div class="selector-actions"><button type="button" class="btn light" id="selectAll">Select All</button><button type="button" class="btn light" id="clearAll">Clear</button></div></div>
+    {% set ns=namespace(current_date='') %}
+    {% set meal_order=['Breakfast','Lunch','High Tea','Dinner'] %}
+    {% for r in meals %}
+      {% if r.meal_date != ns.current_date %}
+        {% set ns.current_date=r.meal_date %}
+        <h3 class="feedback-date">📅 {{r.meal_date}}</h3>
+      {% endif %}
+    {% endfor %}
+    {% for meal_date in meals|map(attribute='meal_date')|unique|list %}
+      <div class="feedback-day">
+        <div class="feedback-day-title"><b>{{meal_date}}</b></div>
+        {% for meal_type in meal_order %}
+          {% set items=meals|selectattr('meal_date','equalto',meal_date)|selectattr('meal_type','equalto',meal_type)|list %}
+          {% if items %}
+          <div class="feedback-meal-block">
+            <div class="feedback-meal-heading"><span>{{'☀️' if meal_type=='Breakfast' else '🍛' if meal_type=='Lunch' else '☕' if meal_type=='High Tea' else '🌙'}}</span><b>{{meal_type}}</b><button type="button" class="meal-select" data-meal="{{meal_date}}-{{meal_type}}">Select this meal</button></div>
+            <div class="feedback-food-list">
+              {% for r in items %}
+              <label class="feedback-food {% if r.already_feedback %}already-rated{% endif %}">
+                <input type="checkbox" name="record_ids" value="{{r.id}}" data-meal-group="{{meal_date}}-{{meal_type}}" {% if r.already_feedback %}disabled{% endif %}>
+                <span class="food-avatar">🍽</span><span class="grow"><b>{{r.food_item}}</b><small>{{r.category or 'Menu item'}}{% if r.already_feedback %} • Already rated{% endif %}</small></span>
+                {% if r.already_feedback %}<span class="status good">✓ Rated</span>{% endif %}
+              </label>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty">No completed meals are available for feedback yet.</div>
+    {% endfor %}
+  </div>
+
+  <div class="card feedback-form-card">
+    <div class="selected-count" id="selectedCount">0 food items selected</div>
+    <h2>Rate your selected food</h2>
+    <p class="muted">The same quick rating is applied only to the food items you selected above.</p>
+    <div class="rating-columns">
+      <div class="rating-field"><label>Food quality</label><div class="stars" data-name="food_quality_rating">{% for i in range(1,6) %}<button type="button" class="star" data-value="{{i}}">★</button>{% endfor %}</div><input type="hidden" name="food_quality_rating" required></div>
+      <div class="rating-field"><label>Taste</label><div class="stars" data-name="taste_rating">{% for i in range(1,6) %}<button type="button" class="star" data-value="{{i}}">★</button>{% endfor %}</div><input type="hidden" name="taste_rating" required></div>
+      <div class="rating-field"><label>Quantity satisfaction</label><div class="stars" data-name="quantity_satisfaction">{% for i in range(1,6) %}<button type="button" class="star" data-value="{{i}}">★</button>{% endfor %}</div><input type="hidden" name="quantity_satisfaction" required></div>
+    </div>
+    <label class="feedback-comment">Comments<textarea name="comments" rows="3" placeholder="Optional: tell the mess team what you liked or what can improve..."></textarea></label>
+    <button class="btn primary" type="submit">★ Submit Feedback for Selected Food</button>
+  </div>
+</form>
+{% endblock %}
+{% block scripts %}
+<script>
+const checks=[...document.querySelectorAll('input[name="record_ids"]')];
+const countEl=document.getElementById('selectedCount');
+function updateCount(){const n=checks.filter(c=>c.checked).length;countEl.textContent=`${n} food item${n===1?'':'s'} selected`}
+document.getElementById('selectAll')?.addEventListener('click',()=>{checks.forEach(c=>{if(!c.disabled)c.checked=true});updateCount()});
+document.getElementById('clearAll')?.addEventListener('click',()=>{checks.forEach(c=>c.checked=false);updateCount()});
+document.querySelectorAll('.meal-select').forEach(btn=>btn.addEventListener('click',()=>{checks.forEach(c=>{if(c.dataset.mealGroup===btn.dataset.meal && !c.disabled)c.checked=true});updateCount()}));
+checks.forEach(c=>c.addEventListener('change',updateCount));
+document.querySelectorAll('.stars').forEach(group=>{group.querySelectorAll('.star').forEach(star=>star.addEventListener('click',()=>{let v=star.dataset.value;group.querySelectorAll('.star').forEach(s=>s.classList.toggle('selected',Number(s.dataset.value)<=Number(v)));group.parentElement.querySelector('input[type=hidden]').value=v;}));});
+document.getElementById('feedbackForm')?.addEventListener('submit',e=>{if(!checks.some(c=>c.checked)){e.preventDefault();alert('Please select at least one food item to rate.');}});
+updateCount();
+</script>
+{% endblock %}

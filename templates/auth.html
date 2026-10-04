@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{{ role|capitalize }} {{ 'Login' if mode=='login' else 'Register' }} • SFMS</title><link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head>
+<body class="login-page">
+<div class="auth-shell">
+  <div class="auth-side {{role}}"><div class="leaf-orbit">{{ '👨‍💼' if role=='staff' else ('🎓' if role=='student' else '🏠') }}</div><span class="eyebrow">{{role|upper}} PORTAL</span><h1>{{ 'Manage smarter.' if role=='staff' else ('Share your voice.' if role=='student' else 'Plan smarter.') }}<br><em>{{ 'Reduce waste.' if role=='staff' else ('Improve meals.' if role=='student' else 'Coordinate holidays.') }}</em></h1><p>{{ 'Control every stage of the food workflow from menu planning to waste reports.' if role=='staff' else ('Rate today’s meals and help the mess team understand student preferences.' if role=='student' else 'Add academic-calendar holidays, collect home-going plans and review demand for hostel and mess operations.') }}</p><a class="back-link" href="{{url_for('login')}}">← Choose another portal</a></div>
+  <div class="auth-card">
+    <div class="auth-heading"><span class="role-pill">{{role|capitalize}}</span><h2>{{ 'Welcome back' if mode=='login' else 'Create your account' }}</h2><p class="muted">{{ 'Sign in to continue to your workspace.' if mode=='login' else 'Register a new account for this portal.' }}</p></div>
+    {% with messages=get_flashed_messages(with_categories=true) %}{% if messages %}<div class="auth-messages">{% for category,msg in messages %}<div class="flash {{category}}">{% if category=='success' %}✓{% else %}!{% endif %} {{msg}}</div>{% endfor %}</div>{% endif %}{% endwith %}
+    <form method="post" class="auth-form" data-loading>
+      {% if mode=='register' %}<label>Full Name<input name="name" required placeholder="Enter your name"></label>{% endif %}
+      <label>Username<input name="username" required minlength="3" placeholder="Enter username" autocomplete="username"></label>
+      <label>Password<input type="password" name="password" required minlength="6" placeholder="Enter password" autocomplete="new-password"></label>
+      {% if mode=='register' %}<label>Confirm Password<input type="password" name="confirm_password" required minlength="6" placeholder="Re-enter password" autocomplete="new-password"></label>{% endif %}
+      <button class="btn primary full" type="submit">{{ 'Sign in →' if mode=='login' else 'Create Account →' }}</button>
+    </form>
+    {% if role!='authority' %}<div class="auth-switch">{{ 'New here?' if mode=='login' else 'Already registered?' }} <a href="{{url_for('register' if mode=='login' else 'role_login', role=role)}}">{{ 'Create an account' if mode=='login' else 'Sign in' }}</a></div>{% endif %}
+    {% if mode=='login' %}<div class="demo-box"><b>Demo</b><br>{{ 'admin / admin123' if role=='staff' else ('student / student123' if role=='student' else 'hostel / hostel123') }}</div>{% endif %}
+  </div>
+</div>
+</body></html>

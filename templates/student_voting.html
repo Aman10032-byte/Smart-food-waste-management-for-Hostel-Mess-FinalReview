@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Dish Voting • SFMS{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">STUDENT VOICE • 01</span><h1>Dish Voting 🗳️</h1><p>Suggest dishes and vote for requests you want the mess team to consider.</p></div><a class="btn light" href="{{url_for('student_home')}}">← Today's Meals</a></section>
+<div class="student-feature-grid single-feature">
+  <div class="card request-card">
+    <div class="card-title"><div><h3>💡 Suggest a Dish</h3><p>Your suggestion appears on the voting board so other students can support it.</p></div><span class="status good">Student voice</span></div>
+    <form method="post" action="{{url_for('suggest_dish')}}" class="form-grid" data-loading>
+      <label>Dish name<input name="dish_name" placeholder="e.g. Rajma Chawal" required></label>
+      <label>Category<select name="category"><option>Main Course</option><option>Breakfast</option><option>Snack</option><option>Dessert</option><option>Regional Special</option><option>Other</option></select></label>
+      <label style="grid-column:1/-1">Why should we add it?<textarea name="note" rows="3" placeholder="Optional: explain why students may like this dish."></textarea></label>
+      <div class="form-actions"><button class="btn primary" type="submit">＋ Add Dish Suggestion</button></div>
+    </form>
+  </div>
+</div>
+<div class="card" style="margin:0 38px 30px"><div class="card-title"><div><h3>🗳️ Community Voting Board</h3><p>One student can vote once per dish. Vote counts help the mess team understand demand.</p></div><span class="status good">{{suggestions|length}} requests</span></div>
+  <div class="suggestion-grid">
+  {% for s in suggestions %}<div class="suggestion-row"><div class="dish-avatar">🍛</div><div class="grow"><b>{{s.dish_name}}</b><small>{{s.category}}{% if s.note %} • {{s.note}}{% endif %}</small></div><div class="vote-count"><strong>{{s.votes}}</strong><span>votes</span></div><form method="post" action="{{url_for('vote_dish',suggestion_id=s.id)}}"><button class="btn {% if s.voted %}light{% else %}primary{% endif %}" type="submit" {% if s.voted %}disabled{% endif %}>{% if s.voted %}✓ Voted{% else %}▲ Vote{% endif %}</button></form></div>{% else %}<div class="empty">No dish suggestions yet.</div>{% endfor %}
+  </div>
+</div>
+{% endblock %}

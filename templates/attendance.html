@@ -1,0 +1,27 @@
+{% extends 'base.html' %}{% block title %}Attendance • SFMS{% endblock %}{% block content %}
+<section class="page-head"><div><span class="eyebrow">STEP 02</span><h1>Attendance</h1><p>Enter attendance once for the whole meal — not student-by-student or food-by-food.</p></div><form class="filterbar" method="get"><input type="date" name="date" value="{{selected_date}}" required><button class="btn dark">View Date</button></form></section>
+<div class="alert-info">👥 <div><b>Quick meal attendance</b><span>For example, enter <strong>450</strong> once for Dinner. Breakfast, Lunch, High Tea and Dinner are recorded separately. Individual food counts are optional.</span></div></div>
+<div class="stack-list">
+{% for g in groups %}
+<div class="card attendance-meal-card">
+  <div class="card-title">
+    <div><span class="eyebrow">{{g.meal_date}}</span><h3>{% if g.meal_type=='Breakfast' %}☀️{% elif g.meal_type=='Lunch' %}🍛{% elif g.meal_type=='High Tea' %}☕{% else %}🌙{% endif %} {{g.meal_type}}</h3><p>{{g['items']|length}} food item(s) • Expected up to {{g.expected}} students</p></div>
+    {% if g.attendance is not none %}<span class="status good">{{g.attendance}} eating</span>{% endif %}
+  </div>
+  <div class="meal-food-row">{% for r in g['items'] %}<span class="food-chip">{{r.food_item}}</span>{% endfor %}</div>
+  {% if g.attendance is none %}
+  <form method="post" class="meal-attendance-form" data-loading>
+    <input type="hidden" name="action" value="meal"><input type="hidden" name="meal_date" value="{{g.meal_date}}"><input type="hidden" name="meal_type" value="{{g.meal_type}}">
+    <label>Total students eating for {{g.meal_type}}</label><div class="attendance-entry"><input type="number" name="attendance_count" min="0" max="{{g.expected*2 if g.expected else 5000}}" placeholder="e.g. 450" required><button class="btn primary" type="submit">✓ Save {{g.meal_type}} Attendance</button></div>
+  </form>
+  {% else %}
+  <div class="attendance-saved"><div><b>{{g.attendance}} students</b><small>recorded for the complete {{g.meal_type}}</small></div><button class="btn light" type="button" onclick="openEdit('{{g['items'][0].id}}','{{g.attendance}}','{{g.meal_type}}')">Edit Total</button></div>
+  <details class="food-details"><summary>＋ Add individual food count <span>optional</span></summary><p class="muted">Use this only when a particular food needs a different count. It does not change the total meal attendance.</p>
+  <div class="food-detail-list">{% for r in g['items'] %}<div class="food-detail-row"><div class="grow"><b>{{r.food_item}}</b>{% if r.food_attendance_count is not none %}<small>Specific count: {{r.food_attendance_count}}</small>{% else %}<small>Uses meal total: {{g.attendance}}</small>{% endif %}</div><form method="post" class="inline-form"><input type="hidden" name="action" value="food"><input type="hidden" name="record_id" value="{{r.id}}"><input type="number" name="food_attendance_count" min="0" max="{{g.attendance*2}}" value="{{r.food_attendance_count or ''}}" placeholder="Count"><button class="btn light" type="submit">Save</button></form></div>{% endfor %}</div>
+  </details>
+  {% endif %}
+</div>
+{% else %}<div class="empty">Create a menu first.</div>{% endfor %}
+</div>
+<div id="editModal" class="modal"><div class="modal-box"><button class="modal-close" onclick="closeEdit()">×</button><h3>Edit Meal Attendance</h3><form method="post" id="editForm"><p id="editLabel"></p><input type="number" name="attendance_count" id="editCount2" min="0" required><button class="btn primary full">Save Change</button></form></div></div>
+{% endblock %}{% block scripts %}<script>function openEdit(id,count,name){document.getElementById('editModal').classList.add('show');document.getElementById('editForm').action='/staff/attendance/'+id+'/edit';document.getElementById('editCount2').value=count;document.getElementById('editLabel').textContent='Update total attendance for '+name+'. This changes the count for all food items in this meal.'}function closeEdit(){document.getElementById('editModal').classList.remove('show')}</script>{% endblock %}

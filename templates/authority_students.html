@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}Student Review • Hostel Authority{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">HOSTEL AUTHORITY • READ ONLY</span><h1>Student Review 🎓</h1><p>Review student meal plans, holiday home-going responses, feedback, dish requests and food-quality reports. Nothing on this page can be edited.</p></div><a class="btn light" href="{{url_for('authority_dashboard')}}">← Back to Authority</a></section>
+<div class="notice info"><b>View-only access:</b> Hostel Authority can review student information here, but cannot change student submissions, ratings or reports. This page includes all student-voice sections in one place.</div>
+
+<div class="card table-card"><div class="card-title"><div><h3>🎓 Registered Students</h3><p>Students currently registered in SFMS.</p></div><span class="status good">{{students|length}} students</span></div>
+<div class="table-wrap"><table><thead><tr><th>Name</th><th>Username</th><th>Role</th></tr></thead><tbody>{% for s in students %}<tr><td><b>{{s.name}}</b></td><td>{{s.username}}</td><td>Student</td></tr>{% else %}<tr><td colspan="3" class="empty">No students registered.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div class="card table-card"><div class="card-title"><div><h3>🏠 Meal & Home-Going Submissions</h3><p>Only submitted responses are shown. No response is treated as no submission.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Student</th><th>Date</th><th>Meal</th><th>Response</th><th>Submitted</th></tr></thead><tbody>{% for r in intentions %}<tr><td>{{r.student_name}}</td><td>{{r.meal_date}}</td><td>{{r.meal_type}}</td><td><span class="status {{'good' if r.going_to_eat else 'pending'}}">{{'Will eat' if r.going_to_eat else 'Going home / not eating'}}</span></td><td>{{r.created_at}}</td></tr>{% else %}<tr><td colspan="5" class="empty">No student meal-plan submissions yet.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div class="card table-card"><div class="card-title"><div><h3>⭐ Student Feedback</h3><p>Food ratings and comments submitted by students.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Student</th><th>Date</th><th>Meal</th><th>Food</th><th>Quality</th><th>Taste</th><th>Quantity</th><th>Comment</th></tr></thead><tbody>{% for r in feedback %}<tr><td>{{r.student_name}}</td><td>{{r.meal_date}}</td><td>{{r.meal_type}}</td><td><b>{{r.food_item}}</b></td><td>{{r.food_quality_rating}}/5</td><td>{{r.taste_rating}}/5</td><td>{{r.quantity_satisfaction}}/5</td><td>{{r.comments or '—'}}</td></tr>{% else %}<tr><td colspan="8" class="empty">No feedback submitted yet.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div class="card table-card"><div class="card-title"><div><h3>🗳️ Dish Requests & Voting</h3><p>Student suggestions and current vote counts.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Dish</th><th>Category</th><th>Suggested by</th><th>Votes</th><th>Status</th></tr></thead><tbody>{% for r in suggestions %}<tr><td><b>{{r.dish_name}}</b></td><td>{{r.category}}</td><td>{{r.student_name}}</td><td>{{r.votes}}</td><td>{{r.status}}</td></tr>{% else %}<tr><td colspan="5" class="empty">No dish requests yet.</td></tr>{% endfor %}</tbody></table></div></div>
+
+<div class="card table-card"><div class="card-title"><div><h3>🚨 Food Quality Reports</h3><p>Reports and evidence submitted by students.</p></div></div>
+<div class="table-wrap"><table><thead><tr><th>Student</th><th>Issue</th><th>Description</th><th>Status</th><th>Evidence</th></tr></thead><tbody>{% for r in issues %}<tr><td>{{r.student_name}}</td><td>{{r.issue_type}}</td><td>{{r.description or '—'}}</td><td>{{r.status}}</td><td>{% if r.image_filename %}<a class="text-link" href="{{url_for('student_upload',filename=r.image_filename)}}" target="_blank">View photo</a>{% else %}—{% endif %}</td></tr>{% else %}<tr><td colspan="5" class="empty">No food-quality reports yet.</td></tr>{% endfor %}</tbody></table></div></div>
+{% endblock %}

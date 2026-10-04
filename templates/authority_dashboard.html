@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Hostel Authority • SFMS{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><span class="eyebrow">HOSTEL AUTHORITY</span><h1>Holiday & Demand Control 🏠</h1><p>Add holidays from the official academic calendar, record the expected home-going count, and review student and mess status in one place.</p></div>
+</section>
+
+<div class="notice info"><b>Academic-calendar workflow:</b> Enter the dates exactly as published by the college/hostel academic calendar. The system then exposes those dates to students for optional home-going submissions.</div>
+
+<div class="stats-grid">
+  <div class="stat-card"><span>🎓</span><div><b>{{student_counts}}</b><small>Registered students</small></div></div>
+  <div class="stat-card"><span>🏠</span><div><b>{{today_home}}</b><small>Home-going submissions today</small></div></div>
+  <div class="stat-card"><span>🍽</span><div><b>{{staff_total}}</b><small>Today's menu records</small></div></div>
+  <div class="stat-card"><span>♻</span><div><b>{{waste_done}}</b><small>Today's waste records completed</small></div></div>
+</div>
+
+<div class="card form-card" id="holidays">
+  <div class="card-title"><div><h3>📅 Add Academic-Calendar Holiday</h3><p>This is the only place where holiday information is entered. Students don't need to create holidays themselves.</p></div></div>
+  <form method="post" class="form-grid">
+    <label>Holiday / Break Name<input name="title" placeholder="e.g. Diwali Break" required></label>
+    <label>Start Date<input type="date" name="start_date" required></label>
+    <label>End Date<input type="date" name="end_date" required></label>
+    <label>Expected Students Going Home<input type="number" name="expected_home_students" min="0" placeholder="e.g. 180"></label>
+    <label class="full-span">Authority Note <span class="muted">(optional)</span><input name="notes" placeholder="Official academic calendar / hostel notice reference"></label>
+    <div class="form-actions"><button class="btn primary" type="submit">＋ Add Holiday to Calendar</button></div>
+  </form>
+</div>
+
+<div class="card table-card" id="students">
+  <div class="card-title"><div><h3>🎓 Student Review</h3><p>View-only access to student submissions, feedback, voting and food-quality reports.</p></div><a class="btn light" href="{{url_for('authority_students')}}">Open Student Review →</a></div>
+  {% for h,f,actual in holiday_rows %}
+  <div class="holiday-card">
+    <div class="grow"><b>{{h.title}}</b><small>{{h.start_date}} → {{h.end_date}}</small></div>
+    <div class="holiday-metric"><strong>{{h.expected_home_students or 0}}</strong><span>authority estimate</span></div>
+    <div class="holiday-metric"><strong>{{actual}}</strong><span>student submissions</span></div>
+    <div class="holiday-metric"><strong>{{f.predicted_eaters}}</strong><span>ML predicted eaters</span></div>
+    <div class="holiday-metric"><strong>{{f.reduction_pct}}%</strong><span>suggested prep reduction</span></div>
+    <span class="status good">{{f.method}}</span>
+  </div>
+  {% else %}<div class="empty">No upcoming academic-calendar holidays have been entered.</div>{% endfor %}
+</div>
+
+<div class="card table-card" id="staff">
+  <div class="card-title"><div><h3>👨‍🍳 Mess Staff Review</h3><p>View-only access to menu, attendance, prediction, preparation, serving and waste records.</p></div><a class="btn light" href="{{url_for('authority_staff')}}">Open Staff Review →</a></div>
+  <div class="stats-grid compact">
+    <div class="stat-card"><span>🍽</span><div><b>{{staff_total}}</b><small>Menu records</small></div></div>
+    <div class="stat-card"><span>👥</span><div><b>{{attendance_done}} / {{staff_total}}</b><small>Attendance entered</small></div></div>
+    <div class="stat-card"><span>🤖</span><div><b>{{prediction_done}} / {{staff_total}}</b><small>Predictions confirmed</small></div></div>
+    <div class="stat-card"><span>🍳</span><div><b>{{preparation_done}} / {{staff_total}}</b><small>Preparation confirmed</small></div></div>
+  </div>
+  <div class="form-actions"><a class="btn light" href="{{url_for('authority_students')}}">View Student Details →</a><a class="btn light" href="{{url_for('authority_staff')}}">View Staff Details →</a></div>
+</div>
+
+<div class="notice success"><b>How the system reduces waste:</b> Academic holiday → optional student home-going submissions → ML demand estimate → authority/mess team sees suggested reduction → staff adjusts preparation.</div>
+{% endblock %}

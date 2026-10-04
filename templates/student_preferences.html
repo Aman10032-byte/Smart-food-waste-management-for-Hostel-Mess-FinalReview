@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Taste & Requests • SFMS{% endblock %}
+{% block content %}
+<section class="page-head"><div><span class="eyebrow">STUDENT VOICE</span><h1>Taste, Requests & Food Quality</h1><p>Tell the mess team what you like, vote for dishes, and report food-quality issues with evidence photos.</p></div><a class="btn light" href="{{url_for('student_home')}}">← Today's Meals</a></section>
+<div class="student-feature-grid">
+  <div class="card request-card">
+    <div class="card-title"><div><h3>🍽 Suggest a Dish</h3><p>Add a dish you would like the hostel mess to consider.</p></div><span class="status good">Student voice</span></div>
+    <form method="post" action="{{url_for('suggest_dish')}}" class="form-grid" data-loading>
+      <label>Dish name<input name="dish_name" placeholder="e.g. Rajma Chawal" required></label>
+      <label>Category<select name="category"><option>Main Course</option><option>Breakfast</option><option>Snack</option><option>Dessert</option><option>Regional Special</option><option>Other</option></select></label>
+      <label style="grid-column:1/-1">Why should we add it?<textarea name="note" rows="3" placeholder="Optional: tell the mess team why students may like it."></textarea></label>
+      <div class="form-actions"><button class="btn primary" type="submit">＋ Add Dish Suggestion</button></div>
+    </form>
+  </div>
+  <div class="card issue-card">
+    <div class="card-title"><div><h3>🚨 Report a Food Quality Issue</h3><p>Use this for concerns such as foreign material, excessive oil, burnt food, undercooked food or hygiene concerns.</p></div><span class="status pending">Private report</span></div>
+    <div class="issue-examples"><div><img src="{{url_for('static',filename='images/foreign-material.svg')}}" alt="Illustration of foreign material issue"><b>Foreign material</b><small>Example: insect/worm or other unwanted material</small></div><div><img src="{{url_for('static',filename='images/oily-food.svg')}}" alt="Illustration of oily food"><b>Too oily</b><small>Excess oil or unusually greasy food</small></div><div><img src="{{url_for('static',filename='images/burnt-food.svg')}}" alt="Illustration of burnt food"><b>Burnt / overcooked</b><small>Texture or cooking problem</small></div><div><img src="{{url_for('static',filename='images/hygiene.svg')}}" alt="Illustration of hygiene concern"><b>Hygiene concern</b><small>Cleanliness or serving concern</small></div></div>
+    <form method="post" action="{{url_for('report_food_issue')}}" enctype="multipart/form-data" class="issue-form" data-loading>
+      <label>Issue type<select name="issue_type" required><option value="">Select an issue</option><option>Foreign material / insect</option><option>Too oily</option><option>Burnt / overcooked</option><option>Undercooked</option><option>Too salty / spicy</option><option>Hygiene concern</option><option>Other food-quality issue</option></select></label>
+      <label>Description<textarea name="description" rows="3" placeholder="Describe what happened, meal/date if useful, and any details."></textarea></label>
+      <label class="upload-box">📷 Upload evidence photo (optional)<input type="file" name="image" accept="image/png,image/jpeg,image/webp"><small>PNG, JPG or WEBP. Only upload relevant food/serving evidence.</small></label>
+      <button class="btn dark" type="submit">⚑ Send Issue to Mess Team</button>
+    </form>
+  </div>
+</div>
+<div class="card suggestion-card" style="margin:0 38px 30px">
+  <div class="card-title"><div><h3>🗳️ Dish Voting Board</h3><p>Students can vote once per dish. Higher vote counts help the mess team identify popular requests.</p></div><span class="status good">{{suggestions|length}} suggestions</span></div>
+  <div class="suggestion-grid">
+    {% for s in suggestions %}
+    <div class="suggestion-row">
+      <div class="dish-avatar">🍛</div><div class="grow"><b>{{s.dish_name}}</b><small>{{s.category}}{% if s.note %} • {{s.note}}{% endif %}</small></div>
+      <div class="vote-count"><strong>{{s.votes}}</strong><span>votes</span></div>
+      <form method="post" action="{{url_for('vote_dish',suggestion_id=s.id)}}"><button class="btn {% if s.voted %}light{% else %}primary{% endif %}" type="submit" {% if s.voted %}disabled{% endif %}>{% if s.voted %}✓ Voted{% else %}▲ Vote{% endif %}</button></form>
+    </div>
+    {% else %}<div class="empty">No dish suggestions yet.</div>{% endfor %}
+  </div>
+</div>
+{% if issues %}<div class="card issue-history" style="margin:0 38px 30px"><div class="card-title"><div><h3>My Reported Issues</h3><p>Track the issues you have submitted.</p></div></div><div class="table-wrap"><table><thead><tr><th>Issue</th><th>Description</th><th>Evidence</th><th>Status</th><th>Date</th></tr></thead><tbody>{% for i in issues %}<tr><td><b>{{i.issue_type}}</b></td><td>{{i.description or '—'}}</td><td>{% if i.image_filename %}<a class="text-link" href="{{url_for('student_upload',filename=i.image_filename)}}" target="_blank">View photo</a>{% else %}—{% endif %}</td><td><span class="status pending">{{i.status}}</span></td><td>{{i.created_at}}</td></tr>{% endfor %}</tbody></table></div></div>{% endif %}
+{% endblock %}

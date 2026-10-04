@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Today's Meals • SFMS{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><span class="eyebrow">STUDENT EXPERIENCE</span><h1>Today's Meals 🍽</h1><p>See each meal as a simple row and quickly choose what you want to rate.</p></div>
+  <div style="display:flex;gap:8px"><a class="btn primary" href="{{url_for('student_meal_plan')}}">📅 Set Today/Tomorrow Meal Plan</a><a class="btn light" href="{{url_for('student_feedback_page')}}">⭐ Give Feedback</a></div>
+</section>
+<div class="alert-info" style="margin-bottom:20px"><div>🏠</div><div><b>Help the mess plan better</b><span>Use <a href="{{url_for('student_meal_plan')}}" style="color:#1f7a52;font-weight:800">Meal Plan</a> to tell the mess whether you will eat today or tomorrow. Holiday home-going responses are optional.</span></div></div>
+
+{% set meal_order=['Breakfast','Lunch','High Tea','Dinner'] %}
+<div class="today-menu-list">
+{% for meal_type in meal_order %}
+  {% set items=meals|selectattr('meal_type','equalto',meal_type)|list %}
+  {% if items %}
+  <section class="card today-meal-row">
+    <div class="today-meal-title"><span class="today-meal-icon">{{'☀️' if meal_type=='Breakfast' else '🍛' if meal_type=='Lunch' else '☕' if meal_type=='High Tea' else '🌙'}}</span><div><span class="meal-tag">{{meal_type}}</span><h2>{{meal_type}}</h2></div></div>
+    <div class="food-chip-row">
+      {% for r in items %}<div class="food-chip"><b>{{r.food_item}}</b><small>{{r.category or 'Menu item'}}</small></div>{% endfor %}
+    </div>
+    <a class="btn light" href="{{url_for('student_feedback_page')}}">⭐ Rate {{meal_type}}</a>
+  </section>
+  {% endif %}
+{% else %}
+  <div class="empty">No meals have been added for today yet.</div>
+{% endfor %}
+</div>
+<div class="impact" style="margin-top:0"><div class="impact-icon">💡</div><div><h3>Quick feedback, less time</h3><p>In My Feedback, select one food, a few foods, or the whole meal. You do not have to rate every food item.</p></div></div>
+{% endblock %}

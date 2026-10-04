@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Choose Portal • SFMS</title><link rel="stylesheet" href="{{url_for('static',filename='css/style.css')}}"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"></head>
+<body class="login-page">
+<div class="portal-shell">
+  <div class="portal-hero">
+    <div class="leaf-orbit">♻</div>
+    <span class="eyebrow">SMART FOOD WASTE MANAGEMENT</span>
+    <h1>Plan smarter.<br>Serve better.<br><em>Waste less.</em></h1>
+    <p>A connected meal workflow for hostel mess operations, intelligent prediction, waste tracking and student feedback.</p>
+    <div class="login-flow"><span>Menu</span><i>→</i><span>Attendance</span><i>→</i><span>Prediction</span><i>→</i><span>Waste</span></div>
+  </div>
+  <div class="portal-choice">
+    <div class="brand large"><span class="brand-icon">♻</span><div><b>SFMS</b><small>Smart Food Waste</small></div></div>
+    <span class="eyebrow">SELECT YOUR PORTAL</span>
+    <h2>How would you like to continue?</h2>
+    <p class="muted">Choose the section that matches your role.</p>
+    <div class="role-cards">
+      <div class="role-card staff"><span class="role-icon">👨‍💼</span><div><b>Staff Portal</b><small>Manage menu, attendance, prediction, preparation, serving and waste reports.</small><div class="role-actions"><a href="{{url_for('role_login', role='staff')}}">Login</a><a href="{{url_for('register', role='staff')}}">Register</a></div></div><strong>→</strong></div>
+      <div class="role-card student"><span class="role-icon">🎓</span><div><b>Student Portal</b><small>View today's meals and submit food quality, taste and quantity feedback.</small><div class="role-actions"><a href="{{url_for('role_login', role='student')}}">Login</a><a href="{{url_for('register', role='student')}}">Register</a></div></div><strong>→</strong></div>
+      <div class="role-card authority"><span class="role-icon">🏠</span><div><b>Hostel Authority</b><small>Add academic-calendar holidays, record expected home-going students and review student + mess status.</small><div class="role-actions"><a href="{{url_for('role_login', role='authority')}}">Login</a></div></div><strong>→</strong></div>
+    </div>
+    <div class="demo-box"><b>Demo accounts</b><br>Staff: <code>admin / admin123</code><br>Student: <code>student / student123</code><br>Hostel Authority: <code>hostel / hostel123</code></div>
+  </div>
+</div>
+</body></html>

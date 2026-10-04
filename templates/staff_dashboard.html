@@ -1,0 +1,82 @@
+{% extends 'base.html' %}{% block title %}Dashboard • SFMS{% endblock %}{% block content %}<section class="page-head"><div><span class="eyebrow">OPERATIONS OVERVIEW</span><h1>Good day, {{current_user}} 👋</h1><p>Track today's meal from planning to measured waste.</p></div><form class="filterbar"><input type="date" name="date" value="{{selected_date}}"><select name="meal_type"><option {% if meal_type=='Breakfast' %}selected{% endif %}>Breakfast</option><option {% if meal_type=='Lunch' %}selected{% endif %}>Lunch</option><option {% if meal_type=='High Tea' %}selected{% endif %}>High Tea</option><option {% if meal_type=='Dinner' %}selected{% endif %}>Dinner</option></select><button class="btn dark">View</button></form></section>
+<div class="stepper">{% for n,l in [(1,'Menu'),(2,'Attendance'),(3,'Prediction'),(4,'Preparation'),(5,'Serving'),(6,'Plate Waste'),(7,'Feedback')] %}<div class="step {% if records and n <= 7 %}done{% endif %}"><b>{{n}}</b><span>{{l}}</span></div>{% if not loop.last %}<div class="step-line"></div>{% endif %}{% endfor %}</div>
+<div class="kpi-grid"><div class="kpi"><span>👥 Attendance</span><strong>{{summary.attendance|round(0)|int}}</strong><small>of {{summary.expected|round(0)|int}} expected</small></div><div class="kpi"><span>🍳 Prepared</span><strong>{{'%.1f'|format(summary.prepared)}} kg</strong><small>actual quantity</small></div><div class="kpi"><span>🥣 Served</span><strong>{{'%.1f'|format(summary.served)}} kg</strong><small>actual quantity</small></div><div class="kpi danger"><span>♻ Total Waste</span><strong>{{'%.1f'|format(summary.total_waste)}} kg</strong><small>{{summary.waste_pct}}% of prepared</small></div></div>
+<div class="grid-2"><div class="card"><div class="card-title"><div><h3>Today's workflow</h3><p>Selected meal records</p></div><a class="text-link" href="{{url_for('menu_management')}}">Manage →</a></div>{% if records %}<div class="record-list">{% for r in records %}<div class="record-row"><div class="food-avatar">{{r.food_item[:1]|upper}}</div><div class="grow"><b>{{r.food_item}}</b><small>{{r.category or 'Food item'}} • {{r.status|replace('_',' ')|title}}</small></div><span class="status {{'good' if r.status in ['feedback_submitted','plate_waste_saved'] else 'pending'}}">{{r.status|replace('_',' ')|title}}</span></div>{% endfor %}</div>{% else %}<div class="empty">No menu records for this date and meal. Start in Menu Management.</div>{% endif %}</div><div class="card"><div class="card-title"><div><h3>Waste snapshot</h3><p>Prepared vs served vs waste</p></div></div><canvas id="wasteChart" height="210"></canvas></div></div>
+<div class="card" style="margin:0 38px 25px"><div class="card-title"><div><h3>🏠 Upcoming Holiday & Meal Demand</h3><p>Students can say whether they will eat. The forecast helps the authority reduce preparation during home-going periods.</p></div><a class="text-link" href="{{url_for('staff_holidays')}}">Manage holidays →</a></div>{% for h,f in holiday_forecasts %}<div class="holiday-card"><div class="grow"><b>{{h.title}}</b><small>{{h.start_date}} → {{h.end_date}}</small></div><div class="holiday-metric"><strong>{{f.predicted_eaters}}</strong><span>predicted eaters</span></div><div class="holiday-metric"><strong>{{f.probability}}%</strong><span>eat probability</span></div><div class="holiday-metric"><strong>{{f.reduction_pct}}%</strong><span>prep reduction</span></div><span class="status good">ML-assisted</span></div>{% else %}<div class="empty">No upcoming holiday has been entered.</div>{% endfor %}</div><div class="card" style="margin:0 38px 25px"><div class="card-title"><div><span class="eyebrow">DATA INSIGHTS</span><h3>📊 Food Planning & Waste Trends</h3><p>Compare one day, two selected dates, or a full 7-day week.</p></div></div>
+<form class="compare-filter" method="get" action="{{url_for('staff_dashboard')}}" onsubmit="return syncGraphFilters()">
+  <div><label>Compare</label><select name="graph_mode" id="graphMode" onchange="toggleGraphDates()"><option value="day" {% if graph_mode=='day' %}selected{% endif %}>One day</option><option value="two" {% if graph_mode=='two' %}selected{% endif %}>Two dates</option><option value="week" {% if graph_mode=='week' %}selected{% endif %}>One week (7 days)</option></select></div>
+  <div id="singleDateBox"><label>Date</label><input type="date" name="graph_date" id="graphDate" value="{{graph_date}}"></div>
+  <div id="secondDateBox"><label>Second date</label><input type="date" name="graph_date2" id="graphDate2" value="{{graph_date2}}"></div>
+  <div id="weekBox"><label>Week starts</label><input type="date" name="graph_week_start" id="graphWeekStart" value="{{graph_week_start}}"></div>
+  <button class="btn dark" type="submit">Compare Graphs</button>
+</form>
+<div class="compare-note" id="compareNote"></div><div class="grid-2"><div class="card"><div class="card-title"><div><h3>Predicted vs Actual Food Made</h3><p>Quantity in kg by meal.</p></div></div><canvas id="predictionVsActualChart" height="220"></canvas></div><div class="card"><div class="card-title"><div><h3>Attendance Trend</h3><p>Students eating by meal.</p></div></div><canvas id="attendanceTrendChart" height="220"></canvas></div></div><div class="card" style="margin-top:18px"><div class="card-title"><div><h3>Wastage Trend</h3><p>Total recorded food waste in kg.</p></div></div><canvas id="wastageTrendChart" height="170"></canvas></div></div><div class="impact"><div class="impact-icon">🌱</div><div><span class="eyebrow">TODAY'S IMPACT</span><h3>{{'%.1f'|format(summary.total_waste)}} kg of food waste recorded</h3><p>Separate kitchen leftovers from plate waste, identify patterns, and use meal-level data to improve future preparation.</p></div></div>{% endblock %}{% block scripts %}<style>.compare-filter{display:flex;gap:12px;align-items:end;flex-wrap:wrap;margin:4px 0 16px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:14px}.compare-filter>div{min-width:170px}.compare-filter label{display:block;font-size:12px;font-weight:700;color:#64748b;margin-bottom:6px}.compare-filter input,.compare-filter select{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #cbd5e1;border-radius:9px;background:#fff}.compare-note{font-size:13px;color:#64748b;margin:-6px 0 14px}</style><script>
+(function(){
+  window.toggleGraphDates=function(){
+    const mode=document.getElementById('graphMode').value;
+    document.getElementById('secondDateBox').style.display=mode==='two'?'block':'none';
+    document.getElementById('weekBox').style.display=mode==='week'?'block':'none';
+    document.getElementById('singleDateBox').style.display=mode==='week'?'none':'block';
+    const note=document.getElementById('compareNote');
+    note.textContent=mode==='day'?'One day: compare Breakfast, Lunch, High Tea and Dinner.':mode==='two'?'Two dates: compare the selected dates directly.':'One week: compare each day from the selected start date for 7 days.';
+  };
+  window.syncGraphFilters=function(){
+    const mode=document.getElementById('graphMode').value;
+    if(mode==='two' && document.getElementById('graphDate').value===document.getElementById('graphDate2').value){
+      alert('Please select two different dates.'); return false;
+    }
+    return true;
+  };
+  const labels={{chart_labels|tojson}};
+  const displayLabels=labels.map(v=>{const m=String(v).match(/^(\d{4})-(\d{2})-(\d{2})$/); if(m){const d=new Date(m[1]+'-'+m[2]+'-'+m[3]+'T00:00:00'); return d.toLocaleDateString(undefined,{day:'2-digit',month:'short'});} return v;});
+  const predicted={{chart_predicted|tojson}};
+  const actual={{chart_actual|tojson}};
+  const attendance={{chart_attendance|tojson}};
+  const waste={{chart_waste|tojson}};
+  const summary=[Number({{summary.served|default(0)}}),Number({{summary.remaining|default(0)}}),Number({{summary.plate_waste|default(0)}})];
+
+  function setup(id){
+    const c=document.getElementById(id); if(!c) return null;
+    const dpr=window.devicePixelRatio||1, w=Math.max(c.parentElement.clientWidth||600,320), h=Number(c.getAttribute('height'))||240;
+    c.width=w*dpr; c.height=h*dpr; c.style.width='100%'; c.style.height=h+'px';
+    const x=c.getContext('2d'); x.setTransform(dpr,0,0,dpr,0,0); x.clearRect(0,0,w,h);
+    return {c,x,w,h};
+  }
+  function empty(x,w,h,msg){x.fillStyle='#64748b';x.font='14px Arial';x.textAlign='center';x.fillText(msg,w/2,h/2);x.textAlign='left';}
+  function drawBar(id, labs, a, b){
+    const o=setup(id); if(!o)return; const {x,w,h}=o;
+    if(!labs.length){empty(x,w,h,'No prediction data yet');return;}
+    const pad={l:48,r:18,t:20,b:58}, max=Math.max(1,...a,...b)*1.15, pw=w-pad.l-pad.r, ph=h-pad.t-pad.b;
+    x.font='12px Arial'; x.strokeStyle='#e2e8f0'; x.fillStyle='#475569';
+    for(let i=0;i<=4;i++){const y=pad.t+ph*i/4;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();x.fillText((max*(1-i/4)).toFixed(0),6,y+4);}
+    const n=labs.length, group=pw/n, bw=Math.min(28,Math.max(8,group*.28));
+    labs.forEach((lab,i)=>{const cx=pad.l+group*i+group/2, h1=(a[i]||0)/max*ph,h2=(b[i]||0)/max*ph;
+      x.fillStyle='#16a34a';x.fillRect(cx-bw-2,pad.t+ph-h1,bw,h1);x.fillStyle='#f59e0b';x.fillRect(cx+2,pad.t+ph-h2,bw,h2);
+      x.fillStyle='#475569';x.save();x.translate(cx,h-15);x.rotate(-.45);x.fillText(String(lab).slice(0,22),0,0);x.restore();
+    });
+    x.fillStyle='#16a34a';x.fillRect(pad.l,h-34,10,10);x.fillStyle='#475569';x.fillText('Predicted',pad.l+15,h-25);
+    x.fillStyle='#f59e0b';x.fillRect(pad.l+92,h-34,10,10);x.fillStyle='#475569';x.fillText('Actual',pad.l+107,h-25);
+  }
+  function drawLine(id,labs,vals){
+    const o=setup(id);if(!o)return;const {x,w,h}=o;
+    if(!labs.length){empty(x,w,h,'No data recorded yet');return;}
+    const pad={l:48,r:18,t:20,b:58},max=Math.max(1,...vals)*1.15,pw=w-pad.l-pad.r,ph=h-pad.t-pad.b;
+    x.font='12px Arial';x.strokeStyle='#e2e8f0';x.fillStyle='#475569';
+    for(let i=0;i<=4;i++){const y=pad.t+ph*i/4;x.beginPath();x.moveTo(pad.l,y);x.lineTo(w-pad.r,y);x.stroke();x.fillText((max*(1-i/4)).toFixed(0),6,y+4);}
+    const pts=vals.map((v,i)=>({x:pad.l+(labs.length===1?pw/2:pw*i/(labs.length-1)),y:pad.t+ph-(Number(v)||0)/max*ph}));
+    x.strokeStyle='#2563eb';x.lineWidth=3;x.beginPath();pts.forEach((p,i)=>i?x.lineTo(p.x,p.y):x.moveTo(p.x,p.y));x.stroke();
+    pts.forEach(p=>{x.fillStyle='#2563eb';x.beginPath();x.arc(p.x,p.y,4,0,Math.PI*2);x.fill();});
+    labs.forEach((lab,i)=>{x.fillStyle='#475569';x.save();x.translate(pts[i].x,h-15);x.rotate(-.45);x.fillText(String(lab).slice(0,22),0,0);x.restore();});
+  }
+  function drawDonut(){
+    const o=setup('wasteChart');if(!o)return;const {x,w,h}=o,total=summary.reduce((a,b)=>a+Math.max(0,b),0);
+    if(total<=0){empty(x,w,h,'No waste/serving data for this meal');return;}
+    const cx=w/2,cy=h/2-10,r=Math.min(72,h/2-40),cols=['#16a34a','#f59e0b','#dc2626'];let ang=-Math.PI/2;
+    summary.forEach((v,i)=>{const part=Math.max(0,v)/total;x.beginPath();x.moveTo(cx,cy);x.arc(cx,cy,r,ang,ang+part*Math.PI*2);x.closePath();x.fillStyle=cols[i];x.fill();ang+=part*Math.PI*2;});
+    x.beginPath();x.arc(cx,cy,r*.62,0,Math.PI*2);x.fillStyle='#fff';x.fill();x.fillStyle='#334155';x.font='bold 15px Arial';x.textAlign='center';x.fillText(total.toFixed(1)+' kg',cx,cy+5);x.font='12px Arial';x.fillText('recorded',cx,cy+22);x.textAlign='left';
+    ['Served','Remaining','Plate waste'].forEach((t,i)=>{x.fillStyle=cols[i];x.fillRect(12+i*105,h-22,10,10);x.fillStyle='#475569';x.fillText(t,27+i*105,h-13);});
+  }
+  function render(){drawDonut();drawBar('predictionVsActualChart',displayLabels,predicted,actual);drawLine('attendanceTrendChart',displayLabels,attendance);drawLine('wastageTrendChart',displayLabels,waste);}
+  window.addEventListener('load',function(){toggleGraphDates();render();});window.addEventListener('resize',()=>setTimeout(render,80));
+})();
+</script>{% endblock %}
